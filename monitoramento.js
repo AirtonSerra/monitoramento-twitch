@@ -283,6 +283,28 @@ javascript: (function () {
             btnIniciar.style.backgroundColor = '#9146FF';
         };
 
+        // Função para disparar o botão de iniciar
+        const dispararIniciar = function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                btnIniciar.click();
+            }
+        };
+
+        const dispararCancelar = function (e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                e.preventDefault();
+                btnCancelar.click();
+            }
+        };
+
+        // Adiciona o evento de tecla Enter nos inputs
+        inputCanal.addEventListener('keydown', dispararIniciar);
+        inputCategoria.addEventListener('keydown', dispararIniciar);
+
+        // Adiciona o evento de tecla ESC no document
+        document.addEventListener('keydown', dispararCancelar);
+
         form.appendChild(labelCanal);
         form.appendChild(inputCanal);
         form.appendChild(labelCategoria);
