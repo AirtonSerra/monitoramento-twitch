@@ -18,7 +18,7 @@ javascript: (function () {
             caixa = document.createElement('div');
             caixa.id = 'mensagem-caixa';
             caixa.style.position = 'fixed';
-            caixa.style.bottom = '70px';
+            caixa.style.bottom = '92px';
             caixa.style.right = '20px';
             caixa.style.zIndex = '99998';
             caixa.style.padding = '15px';
@@ -42,6 +42,7 @@ javascript: (function () {
             btnFechar.onclick = funcaoFechar;
 
             const conteudo = document.createElement('div');
+            conteudo.style.paddingRight = '10px';
             conteudo.id = 'mensagem-conteudo';
             caixa.appendChild(conteudo);
             caixa.appendChild(btnFechar);
@@ -100,6 +101,7 @@ javascript: (function () {
     // Função para verificar a categoria do canal
     function verificarCategoria(NOME_CANAL, CATEGORIA_ALVO) {
         const elementos = document.querySelectorAll('[data-a-id^="followed-channel"]');
+
         for (let el of elementos) {
             const nomeEl = el.querySelector('[data-a-target="side-nav-title"]');
             const categoriaEl = el.querySelector('[data-a-target="side-nav-game-title"]');
@@ -110,12 +112,10 @@ javascript: (function () {
             const categoria = categoriaEl.textContent.trim();
 
             if (nome.toLowerCase() === NOME_CANAL.toLowerCase()) {
-                console.log('🎯 ' + nome + ' — Categoria atual: ' + categoria);
-
-                if (categoria === CATEGORIA_ALVO) {
+                if (categoria.toLowerCase() === CATEGORIA_ALVO.toLowerCase()) {
                     tocarAlerta();
                     mostrarMensagem(
-                        '🚨 ' + nome + ' mudou para: ' + categoria,
+                        '🚨 ' + nome + ' está em: ' + categoria,
                         '#F44336',
                         true,
                         function () {
@@ -123,22 +123,22 @@ javascript: (function () {
                         }
                     );
                     pararMonitoramento();
+                    return true;
                 }
-                return;
             }
         }
-        console.log('Canal não encontrado.');
+        return false;
     }
 
     // Função para adicionar o botão de parar monitoramento
-    function adicionarBotao() {
+    function botaoPararMonitoramento() {
         if (!document.getElementById('monitor-btn')) {
             const btn = document.createElement('button');
             btn.textContent = '⏹ Parar monitoramento';
             btn.id = 'monitor-btn';
             btn.style.position = 'fixed';
-            btn.style.bottom = '20px';
-            btn.style.right = '20px';
+            btn.style.top = '5px';
+            btn.style.right = '464px';
             btn.style.zIndex = '99999';
             btn.style.padding = '10px 15px';
             btn.style.backgroundColor = '#9146FF';
@@ -179,6 +179,20 @@ javascript: (function () {
         }
     }
 
+    // Função para verificar se o canal existe
+    function verificarCanalExiste(NOME_CANAL) {
+        const elementos = document.querySelectorAll('[data-a-id^="followed-channel"]');
+        for (let el of elementos) {
+            const nomeEl = el.querySelector('[data-a-target="side-nav-title"]');
+            if (!nomeEl) continue;
+            const nome = nomeEl.textContent.trim();
+            if (nome.toLowerCase() === NOME_CANAL.toLowerCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function main() {
         // Verifica se está na página da Twitch
         if (!window.location.hostname.includes('twitch.tv')) {
@@ -193,21 +207,44 @@ javascript: (function () {
             return;
         }
 
-        // Variáveis globais
-        window.beepAlerta = null;
+        // Solicita as informações do usuário
+        const NOME_CANAL = prompt('Digite o nome do canal que deseja monitorar:');
+        if (!NOME_CANAL) {
+            mostrarMensagem('❌ Nome do canal não informado', '#F44336');
+            return;
+        }
 
-        // Configurações
-        const NOME_CANAL = 'SkipNhO';
-        const CATEGORIA_ALVO = 'Só Na Conversa';
-        const INTERVALO = 10 * 1000;
+        // Verifica se o canal existe antes de continuar
+        if (!verificarCanalExiste(NOME_CANAL)) {
+            mostrarMensagem(
+                '❌ Canal não encontrado. Se o canal está online e se o nome está correto.',
+                '#F44336',
+                true
+            );
+            return;
+        }
 
-        // Inicialização do monitoramento
-        setTimeout(adicionarBotao, 1000);
-        window.monitoramentoExecutando = true;
-        window.monitorIntervaloId = setInterval(function () {
-            verificarCategoria(NOME_CANAL, CATEGORIA_ALVO);
-        }, INTERVALO);
-        mostrarMensagem(`🎉 Monitoramento do canal ${NOME_CANAL} ativado!`, '#4CAF50');
+        const CATEGORIA_ALVO = prompt('Digite a categoria que deseja monitorar:');
+        if (!CATEGORIA_ALVO) {
+            mostrarMensagem('❌ Categoria não informada', '#F44336');
+            return;
+        }
+
+        if (!verificarCategoria(NOME_CANAL, CATEGORIA_ALVO)) {
+            setTimeout(botaoPararMonitoramento, 100);
+
+            // Variáveis globais
+            window.beepAlerta = null;
+
+            // Configurações
+            const INTERVALO = 10 * 1000;
+
+            // Inicialização do monitoramento
+            window.monitoramentoExecutando = true;
+            window.monitorIntervaloId = setInterval(function () {
+                verificarCategoria(NOME_CANAL, CATEGORIA_ALVO);
+            }, INTERVALO);
+        }
     }
 
     main();
